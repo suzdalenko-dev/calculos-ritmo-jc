@@ -11,7 +11,7 @@ import tools.jackson.databind.json.JsonMapper;
 @Service
 public class SqlServerCredentialsReader {
 
-    private static final Path CREDENTIALS_PATH = Path.of("C:\\projects\\secrets\\sql-server.json");
+    private static final Path CREDENTIALS_PATH = Path.of("C:/projects/secret/sql-server.json");
 
     private final JsonMapper jsonMapper;
 

@@ -2,6 +2,7 @@ package com.suzdal.ritm.controller;
 import static org.mockito.Answers.values;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
@@ -23,21 +24,21 @@ public class EmptyController {
     @GetMapping("/")
     public Map<String, String> getEmpty() {
         String currentDate = DATE_TIME_FORMATTER.format(java.time.LocalDateTime.now());
-
+        String credentials = "No credentials available";
+        
         try {
-            var credentials = credentialsReader.read();
-
-            return Map.of(
-                "date", currentDate,
-                "credentials", credentials != null
-                    ? "loaded"
-                    : "not loaded"
-            );
+            credentials = credentialsReader.read().toString();
         } catch (IOException e) {
-            return Map.of(
-                "date", currentDate,
-                "credentials", e.getMessage().toString()
-            );
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
+
+        return Map.of(
+            "date",
+            DATE_TIME_FORMATTER.format(LocalDateTime.now()),
+
+            "credentials",
+            credentials.toString()
+        );
     }
 }
