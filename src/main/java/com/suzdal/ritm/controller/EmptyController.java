@@ -1,17 +1,12 @@
 package com.suzdal.ritm.controller;
-
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.suzdal.ritm.utils.service.SqlServerCredentialsReader;
 
-import tools.jackson.core.JacksonException;
 
 @RestController
 public class EmptyController {
@@ -21,16 +16,13 @@ public class EmptyController {
 
     private final SqlServerCredentialsReader credentialsReader;
 
-    public EmptyController(
-        SqlServerCredentialsReader credentialsReader
-    ) {
+    public EmptyController(SqlServerCredentialsReader credentialsReader) {
         this.credentialsReader = credentialsReader;
     }
 
     @GetMapping("/")
     public ResponseEntity<Map<String, String>> getEmpty() {
-        String currentDate =
-            DATE_TIME_FORMATTER.format(LocalDateTime.now());
+        String currentDate = DATE_TIME_FORMATTER.format(LocalDateTime.now());
 
         try {
             var credentials = credentialsReader.read();
@@ -45,26 +37,14 @@ public class EmptyController {
                 )
             );
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             return ResponseEntity.internalServerError().body(
                 Map.of(
-                    "date", currentDate,
-                    "credentials", "error",
                     "errorType", e.getClass().getSimpleName(),
                     "errorMessage", String.valueOf(e.getMessage())
                 )
             );
 
-        } catch (JacksonException e) {
-            return ResponseEntity.internalServerError().body(
-                Map.of(
-                    "date", currentDate,
-                    "credentials", "error",
-                    "errorType", e.getClass().getSimpleName(),
-                    "errorMessage",
-                    "El JSON no coincide con SqlServerCredentials"
-                )
-            );
         }
     }
 }
