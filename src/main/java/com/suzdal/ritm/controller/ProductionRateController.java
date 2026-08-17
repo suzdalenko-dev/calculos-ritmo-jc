@@ -24,15 +24,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.suzdal.ritm.database.MySqlDatabase;
 import com.suzdal.ritm.database.SqlServerDatabase;
-
 import tools.jackson.databind.json.JsonMapper;
 
 @RestController
@@ -1766,10 +1763,16 @@ public class ProductionRateController {
     ) {
 
         long hours =
-            totalSeconds / 3600;
+            Math.floorDiv(
+                totalSeconds,
+                3600L
+            );
 
         long minutes =
-            (totalSeconds % 3600) / 60;
+            Math.floorDiv(
+                totalSeconds % 3600L,
+                60L
+            );
 
         return "%02d:%02d".formatted(
             hours,
