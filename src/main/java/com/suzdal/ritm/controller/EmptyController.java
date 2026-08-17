@@ -3,6 +3,8 @@ package com.suzdal.ritm.controller;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,43 +18,37 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.suzdal.ritm.database.MySqlDatabase;
 import com.suzdal.ritm.database.SqlServerDatabase;
-import com.suzdal.ritm.utils.service.SqlServerCredentialsReader;
 
 @RestController
 public class EmptyController {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER =
-        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter.ofPattern(
+            "yyyy-MM-dd HH:mm:ss"
+        );
 
-    private final SqlServerCredentialsReader credentialsReader;
     private final SqlServerDatabase sqlServerDatabase;
+    private final MySqlDatabase mySqlDatabase;
 
     public EmptyController(
-        SqlServerCredentialsReader credentialsReader,
-        SqlServerDatabase sqlServerDatabase
+        SqlServerDatabase sqlServerDatabase,
+        MySqlDatabase mySqlDatabase
     ) {
-        this.credentialsReader = credentialsReader;
         this.sqlServerDatabase = sqlServerDatabase;
+        this.mySqlDatabase = mySqlDatabase;
     }
 
     @GetMapping("/")
     public ResponseEntity<Map<String, Object>> getEmpty() {
 
-        String currentDate =
-            DATE_TIME_FORMATTER.format(LocalDateTime.now());
-
-        /*
-         * Equivale al PHP:
-         *
-         * date('Y-m-d', strtotime('-7 days')) . ' 00:00:00'
-         */
-        LocalDateTime sevenDaysAgo =
+        LocalDateTime dateFrom =
             LocalDate.now()
                 .minusDays(3)
                 .atStartOfDay();
 
-        String sql = """
+        String sqlServerQuery = """
             SELECT
                 ActualNetWeightValue,
                 CreationDate,
@@ -67,9 +63,17 @@ public class EmptyController {
             ORDER BY CreationDate ASC
             """;
 
-        try {
+        String mySqlQuery = """
+            SELECT *
+            FROM ritmoproducciones
+            """;
 
-            Connection connection =
+        try {
+            /*
+             * CONSULTA SQL SERVER
+             */
+
+            Connection sqlServerConnection =
                 sqlServerDatabase.getConnection();
 
             List<Map<String, Object>> packageRecords =
@@ -77,11 +81,13 @@ public class EmptyController {
 
             try (
                 PreparedStatement statement =
-                    connection.prepareStatement(sql)
+                    sqlServerConnection.prepareStatement(
+                        sqlServerQuery
+                    )
             ) {
                 statement.setTimestamp(
                     1,
-                    Timestamp.valueOf(sevenDaysAgo)
+                    Timestamp.valueOf(dateFrom)
                 );
 
                 try (
@@ -116,22 +122,30 @@ public class EmptyController {
 
                         packageRecord.put(
                             "ArticleName",
-                            resultSet.getString("ArticleName")
+                            resultSet.getString(
+                                "ArticleName"
+                            )
                         );
 
                         packageRecord.put(
                             "ArticleNumber",
-                            resultSet.getString("ArticleNumber")
+                            resultSet.getString(
+                                "ArticleNumber"
+                            )
                         );
 
                         packageRecord.put(
                             "BatchNumber",
-                            resultSet.getString("BatchNumber")
+                            resultSet.getString(
+                                "BatchNumber"
+                            )
                         );
 
                         packageRecord.put(
                             "DeviceName",
-                            resultSet.getString("DeviceName")
+                            resultSet.getString(
+                                "DeviceName"
+                            )
                         );
 
                         packageRecords.add(packageRecord);
@@ -139,17 +153,89 @@ public class EmptyController {
                 }
             }
 
+            /*
+             * CONSULTA MYSQL
+             */
+
+            Connection mySqlConnection =
+                mySqlDatabase.getConnection();
+
+            List<Map<String, Object>> ritmoProducciones =
+                new ArrayList<>();
+
+            try (
+                PreparedStatement statement =
+                    mySqlConnection.prepareStatement(
+                        mySqlQuery
+                    );
+
+                ResultSet resultSet =
+                    statement.executeQuery()
+            ) {
+                ResultSetMetaData metadata =
+                    resultSet.getMetaData();
+
+                int columnCount =
+                    metadata.getColumnCount();
+
+                while (resultSet.next()) {
+
+                    Map<String, Object> row =
+                        new LinkedHashMap<>();
+
+                    for (
+                        int columnIndex = 1;
+                        columnIndex <= columnCount;
+                        columnIndex++
+                    ) {
+                        String columnName =
+                            metadata.getColumnLabel(
+                                columnIndex
+                            );
+
+                        Object columnValue =
+                            resultSet.getObject(
+                                columnIndex
+                            );
+
+                        row.put(
+                            columnName,
+                            formatDatabaseValue(
+                                columnValue
+                            )
+                        );
+                    }
+
+                    ritmoProducciones.add(row);
+                }
+            }
+
+            /*
+             * RESPUESTA JSON
+             */
+
             Map<String, Object> response =
                 new LinkedHashMap<>();
 
-            //response.put("date", currentDate);
-            response.put("dateFrom", DATE_TIME_FORMATTER.format(sevenDaysAgo));
-            //     response.put("host", credentials.host());
-            //     response.put("dbname", credentials.dbname());
-            //     response.put("username", credentials.username());
-            //     response.put("connection", "Established");
-                 response.put("recordsCount", packageRecords.size());
-            // response.put("records", packageRecords);
+            response.put(
+                "sqlServerDateFrom",
+                DATE_TIME_FORMATTER.format(dateFrom)
+            );
+
+            response.put(
+                "sqlServerRecordsCount",
+                packageRecords.size()
+            );
+
+            response.put(
+                "mySqlRecordsCount",
+                ritmoProducciones.size()
+            );
+
+            response.put(
+                "ritmoproducciones",
+                ritmoProducciones
+            );
 
             return ResponseEntity.ok(response);
 
@@ -172,5 +258,31 @@ public class EmptyController {
                 .internalServerError()
                 .body(error);
         }
+    }
+
+    private Object formatDatabaseValue(
+        Object value
+    ) {
+        if (value instanceof Timestamp timestamp) {
+            return DATE_TIME_FORMATTER.format(
+                timestamp.toLocalDateTime()
+            );
+        }
+
+        if (value instanceof LocalDateTime localDateTime) {
+            return DATE_TIME_FORMATTER.format(
+                localDateTime
+            );
+        }
+
+        if (value instanceof java.sql.Date date) {
+            return date.toLocalDate().toString();
+        }
+
+        if (value instanceof Time time) {
+            return time.toLocalTime().toString();
+        }
+
+        return value;
     }
 }
