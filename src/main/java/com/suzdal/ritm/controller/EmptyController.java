@@ -1,6 +1,8 @@
 package com.suzdal.ritm.controller;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,23 +25,25 @@ public class EmptyController {
     @GetMapping("/")
     public ResponseEntity<Map<String, String>> getEmpty() {
         String currentDate = DATE_TIME_FORMATTER.format(LocalDateTime.now());
+        List<String> arrayList = new ArrayList<>(List.of("1", "2", "3", "4", "5"));
+        arrayList.add("6");
 
         try {
             var credentials = credentialsReader.read();
 
             return ResponseEntity.ok(
-                Map.of(
+                Map.<String, String>of(
                     "date", currentDate,
-                    "credentials", "loaded",
                     "host", String.valueOf(credentials.host()),
-                    "port", String.valueOf(credentials.port()),
-                    "dbname", String.valueOf(credentials.dbname())
+                    "dbname", String.valueOf(credentials.dbname()),
+                    "username", String.valueOf(credentials.username()),
+                    "array", arrayList.toString()
                 )
             );
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(
-                Map.of(
+                Map.<String, String>of(
                     "errorType", e.getClass().getSimpleName(),
                     "errorMessage", String.valueOf(e.getMessage())
                 )
