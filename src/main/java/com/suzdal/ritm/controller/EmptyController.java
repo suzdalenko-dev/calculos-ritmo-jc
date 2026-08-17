@@ -7,6 +7,8 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.suzdal.ritm.database.SqlServerDatabase;
 import com.suzdal.ritm.utils.service.SqlServerCredentialsReader;
 
 
@@ -31,13 +33,17 @@ public class EmptyController {
         try {
             var credentials = credentialsReader.read();
 
+            SqlServerDatabase sqlServerDatabase = new SqlServerDatabase(credentialsReader);
+            sqlServerDatabase.getConnection(); // Establish the connection to the database
+
+
             return ResponseEntity.ok(
                 Map.<String, String>of(
                     "date", currentDate,
                     "host", String.valueOf(credentials.host()),
                     "dbname", String.valueOf(credentials.dbname()),
                     "username", String.valueOf(credentials.username()),
-                    "array", arrayList.toString()
+                    "connection", "Established"
                 )
             );
 
