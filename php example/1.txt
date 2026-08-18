@@ -1,0 +1,69 @@
+New-Item `
+    -ItemType Directory `
+    -Force `
+    -Path 'C:\FROXA\Services\Ritm'
+
+New-Item `
+    -ItemType Directory `
+    -Force `
+    -Path 'C:\FROXA\Services\Ritm\logs'
+
+
+
+Copy-Item `
+    'C:\projects\calculos-ritmo-jc\target\ritm-0.0.1-SNAPSHOT.jar' `
+    'C:\FROXA\Services\Ritm\ritm.jar'
+
+
+
+Get-Item 'C:\FROXA\Services\Ritm\ritm.jar'
+
+
+
+Invoke-WebRequest `
+    -Uri 'https://github.com/winsw/winsw/releases/download/v2.12.0/WinSW.NET461.exe' `
+    -OutFile 'C:\FROXA\Services\Ritm\ritm-service.exe'
+
+
+
+[xml]$serviceConfig = Get-Content `
+    'C:\FROXA\Services\Ritm\ritm-service.xml' `
+    -Raw
+
+$serviceConfig.service.id
+
+
+
+icacls 'C:\FROXA\Services\Ritm' `
+    /grant '*S-1-5-19:(OI)(CI)RX'
+
+
+icacls 'C:\FROXA\Services\Ritm\logs' `
+    /grant '*S-1-5-19:(OI)(CI)M'
+
+
+icacls 'C:\projects\secret\mysql.json' `
+    /grant '*S-1-5-19:R'
+
+icacls 'C:\projects\secret\sql-server.json' `
+    /grant '*S-1-5-19:R'
+
+
+Get-NetTCPConnection `
+    -LocalPort 8080 `
+    -State Listen `
+    -ErrorAction SilentlyContinue
+
+
+.\ritm-service.exe install
+
+
+.\ritm-service.exe start
+
+
+.\ritm-service.exe status
+
+
+Get-CimInstance Win32_Service `
+    -Filter "Name='FroxaRitm'" |
+    Select-Object Name, State, StartMode, StartName, PathName
