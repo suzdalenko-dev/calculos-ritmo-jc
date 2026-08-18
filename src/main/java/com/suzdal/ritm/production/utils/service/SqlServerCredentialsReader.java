@@ -1,10 +1,10 @@
-package com.suzdal.ritm.utils.service;
+package com.suzdal.ritm.production.utils.service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.springframework.stereotype.Service;
 
-import com.suzdal.ritm.utils.models.SqlServerCredentials;
+import com.suzdal.ritm.production.utils.models.SqlServerCredentials;
 
 import tools.jackson.databind.json.JsonMapper;
 

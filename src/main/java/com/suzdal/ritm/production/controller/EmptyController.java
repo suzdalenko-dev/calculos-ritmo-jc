@@ -1,4 +1,4 @@
-package com.suzdal.ritm.controller;
+package com.suzdal.ritm.production.controller;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,8 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.suzdal.ritm.database.MySqlDatabase;
-import com.suzdal.ritm.database.SqlServerDatabase;
+import com.suzdal.ritm.production.database.MySqlDatabase;
+import com.suzdal.ritm.production.database.SqlServerDatabase;
 
 @RestController
 public class EmptyController {

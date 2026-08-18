@@ -1,4 +1,4 @@
-package com.suzdal.ritm.controller;
+package com.suzdal.ritm.production.controller;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -29,8 +29,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.suzdal.ritm.database.MySqlDatabase;
-import com.suzdal.ritm.database.SqlServerDatabase;
+import com.suzdal.ritm.production.database.MySqlDatabase;
+import com.suzdal.ritm.production.database.SqlServerDatabase;
 
 import tools.jackson.databind.json.JsonMapper;
 

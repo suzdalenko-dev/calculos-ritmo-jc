@@ -1,4 +1,4 @@
-package com.suzdal.ritm.database;
+package com.suzdal.ritm.production.database;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -6,8 +6,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import org.springframework.stereotype.Service;
 
-import com.suzdal.ritm.utils.models.MySqlCredencials;
-import com.suzdal.ritm.utils.service.MySqlCredencialsReader;
+import com.suzdal.ritm.production.utils.models.MySqlCredencials;
+import com.suzdal.ritm.production.utils.service.MySqlCredencialsReader;
 
 import jakarta.annotation.PreDestroy;
 
