@@ -37,18 +37,13 @@ import tools.jackson.databind.json.JsonMapper;
 public class ProductionRateController {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
     private static final String INDIVIDUAL_WEIGHTS_URL = "http://192.168.14.1/api/get-pesadas-individuales";
-
     private static final int ANALYSIS_STEP_SECONDS = 150;
     private static final int ASSESSMENT_WINDOW_SECONDS = 300;
     private static final int MINIMUM_STOP_SECONDS = 300;
     private static final int LONG_STOP_SECONDS = 18_000;
     private static final int BREAK_SECONDS = 1_800;
-
-    private static final double HOURLY_RATE_MULTIPLIER =
-        3600.0 / ASSESSMENT_WINDOW_SECONDS;
-
+    private static final double HOURLY_RATE_MULTIPLIER = 3600.0 / ASSESSMENT_WINDOW_SECONDS;
     private final SqlServerDatabase sqlServerDatabase;
     private final MySqlDatabase mySqlDatabase;
     private final JsonMapper jsonMapper;
@@ -62,16 +57,11 @@ public class ProductionRateController {
         this.sqlServerDatabase = sqlServerDatabase;
         this.mySqlDatabase = mySqlDatabase;
         this.jsonMapper = jsonMapper;
-
-        this.httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
-            .build();
+        this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     }
 
-    @GetMapping({
-        "/api/production-rate",
-        "/api/informe_jc"
-    })
+    // http://192.168.1.98:8080/api/informe_jc/java/
+    @GetMapping("/api/informe_jc/java/")
     public ResponseEntity<Map<String, Object>> getProductionRate() {
 
         LocalDateTime dateFrom =
