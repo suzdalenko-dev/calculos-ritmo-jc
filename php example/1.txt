@@ -67,3 +67,42 @@ Get-NetTCPConnection `
 Get-CimInstance Win32_Service `
     -Filter "Name='FroxaRitm'" |
     Select-Object Name, State, StartMode, StartName, PathName
+
+
+
+
+
+# detener:
+$serviceName = 'FroxaRitm'
+$wrapperPath = 'C:\FROXA\Services\Ritm\ritm-service.exe'
+
+# Impide cualquier nuevo arranque
+Set-Service `
+    -Name $serviceName `
+    -StartupType Disabled
+
+# Detiene el servicio si todavía está funcionando
+$service = Get-Service `
+    -Name $serviceName `
+    -ErrorAction SilentlyContinue
+
+if ($null -ne $service -and $service.Status -ne 'Stopped') {
+    & $wrapperPath stop
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "WinSW no pudo detener $serviceName."
+    }
+}
+
+# Elimina definitivamente el servicio de Windows
+& $wrapperPath uninstall
+
+if ($LASTEXITCODE -ne 0) {
+    throw "WinSW no pudo desinstalar $serviceName."
+}
+
+
+
+Get-Service `
+    -Name 'FroxaRitm' `
+    -ErrorAction SilentlyContinue

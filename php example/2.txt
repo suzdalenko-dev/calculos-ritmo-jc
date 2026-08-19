@@ -1,0 +1,16 @@
+Opciones disponibles:
+WinSW	
+Apache Procrun
+jpackage --launcher-as-service Muy interesante: servicio + instalador + Java incluido
+Servicio propio en C#/.NET
+
+
+
+Windows solamente conocería el proceso C#. Por eso el servicio C# debe garantizar que:
+
+Si se inicia el servicio, se inicia Java.
+Si se detiene el servicio, se detiene Java.
+Si Java falla, se reinicia o se marca el servicio como fallido.
+Si el servicio C# muere, Java no queda huérfano.
+Los logs de Java quedan registrados.
+No se ejecutan dos copias del JAR simultáneamente.
