@@ -4,3 +4,41 @@ START DEVELOPER MODE PORT 8181
 Set-Location 'C:\projects\calculos-ritmo-jc'
 $env:SPRING_PROFILES_ACTIVE = 'dev'
 mvn spring-boot:run
+
+
+----------------------------------------------------------------
+CREATE JAR PRODUCTION:
+
+Set-Location 'C:\projects\calculos-ritmo-jc'
+
+# Evita que los tests utilicen accidentalmente el perfil dev
+Remove-Item Env:SPRING_PROFILES_ACTIVE `
+    -ErrorAction SilentlyContinue
+
+mvn clean package
+
+
+-----------------------------------------------------------------
+TEST PRODUCTION:
+
+java `
+    -jar `
+    'C:\projects\calculos-ritmo-jc\target\ritm-0.0.1-SNAPSHOT.jar' `
+    --spring.profiles.active=prod
+
+
+________________________________________________________________
+$env:SPRING_PROFILES_ACTIVE = 'prod'
+
+java `
+    -jar `
+    'C:\projects\calculos-ritmo-jc\target\ritm-0.0.1-SNAPSHOT.jar'
+
+
+-----------------------------------------------------------------
+3. Comprobar que escucha en 8080
+
+Get-NetTCPConnection `
+    -LocalPort 8080 `
+    -State Listen `
+    -ErrorAction SilentlyContinue
