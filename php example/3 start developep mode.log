@@ -1,0 +1,6 @@
+
+START DEVELOPER MODE PORT 8181
+
+Set-Location 'C:\projects\calculos-ritmo-jc'
+$env:SPRING_PROFILES_ACTIVE = 'dev'
+mvn spring-boot:run

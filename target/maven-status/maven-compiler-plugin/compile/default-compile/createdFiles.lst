@@ -1,10 +1,1 @@
 com\suzdal\ritm\Main.class
-com\suzdal\ritm\controller\EmptyController.class
-com\suzdal\ritm\database\MySqlDatabase.class
-com\suzdal\ritm\utils\service\SqlServerCredentialsReader.class
-com\suzdal\ritm\database\SqlServerDatabase.class
-com\suzdal\ritm\utils\models\MySqlCredencials.class
-com\suzdal\ritm\controller\ProductionRateController.class
-com\suzdal\ritm\utils\models\SqlServerCredentials.class
-com\suzdal\ritm\utils\service\MySqlCredencialsReader.class
-com\suzdal\ritm\controller\ProductionRateController$WeightPoint.class

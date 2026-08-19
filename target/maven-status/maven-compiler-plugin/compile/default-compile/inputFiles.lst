@@ -1,9 +1,9 @@
-C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\controller\EmptyController.java
-C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\controller\ProductionRateController.java
-C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\database\MySqlDatabase.java
-C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\database\SqlServerDatabase.java
 C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\Main.java
-C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\utils\models\MySqlCredencials.java
-C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\utils\models\SqlServerCredentials.java
-C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\utils\service\MySqlCredencialsReader.java
-C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\utils\service\SqlServerCredentialsReader.java
+C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\production\controller\EmptyController.java
+C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\production\controller\ProductionRateController.java
+C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\production\database\MySqlDatabase.java
+C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\production\database\SqlServerDatabase.java
+C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\production\utils\models\MySqlCredencials.java
+C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\production\utils\models\SqlServerCredentials.java
+C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\production\utils\service\MySqlCredencialsReader.java
+C:\projects\calculos-ritmo-jc\src\main\java\com\suzdal\ritm\production\utils\service\SqlServerCredentialsReader.java

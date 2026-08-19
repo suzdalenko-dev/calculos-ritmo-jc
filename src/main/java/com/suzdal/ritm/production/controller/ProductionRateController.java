@@ -28,9 +28,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.suzdal.ritm.production.database.MySqlDatabase;
 import com.suzdal.ritm.production.database.SqlServerDatabase;
+import com.suzdal.ritm.production.utils.repository.RateSettingsRepository;
 
 import tools.jackson.databind.json.JsonMapper;
 
@@ -50,43 +50,31 @@ public class ProductionRateController {
     private final MySqlDatabase mySqlDatabase;
     private final JsonMapper jsonMapper;
     private final HttpClient httpClient;
+    private final String LOAD_RATE_SETTINGS_SQL = "SELECT id, __numero, __min, __max, __sala, __checked__frito FROM ritmoproducciones ORDER BY id ASC";
 
-    public ProductionRateController(
-        SqlServerDatabase sqlServerDatabase,
-        MySqlDatabase mySqlDatabase,
-        JsonMapper jsonMapper
-    ) {
+    public ProductionRateController(SqlServerDatabase sqlServerDatabase, MySqlDatabase mySqlDatabase, JsonMapper jsonMapper) {
         this.sqlServerDatabase = sqlServerDatabase;
-        this.mySqlDatabase = mySqlDatabase;
-        this.jsonMapper = jsonMapper;
-        this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+        this.mySqlDatabase     = mySqlDatabase;
+        this.jsonMapper        = jsonMapper;
+        this.httpClient        = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(22)).build();
     }
 
     // http://192.168.1.98:8080/api/informe_jc/java/
     @GetMapping("/api/informe_jc/java/")
     public ResponseEntity<Map<String, Object>> getProductionRate() {
 
-        LocalDateTime dateFrom =
-            LocalDate.now()
-                .minusDays(7)
-                .atStartOfDay();
+        LocalDateTime dateFrom = LocalDate.now().minusDays(7).atStartOfDay();
 
         try {
-            List<Map<String, Object>> rateSettings =
-                loadRateSettings();
+             /* CONSULTA MYSQL AJUSTES */
+            List<Map<String, Object>> rateSettings = RateSettingsRepository.loadRateSettings(mySqlDatabase, LOAD_RATE_SETTINGS_SQL);
 
             /*
              * LÍNEA 3
              */
 
-            List<Map<String, Object>> line3Materials =
-                loadPackageRecords(
-                    dateFrom,
-                    "CWE"
-                );
-
-            List<Map<String, Object>> individualWeights =
-                loadIndividualWeights(dateFrom);
+            List<Map<String, Object>> line3Materials    = loadPackageRecords(dateFrom, "CWE");
+            List<Map<String, Object>> individualWeights = loadIndividualWeights(dateFrom);
 
             line3Materials.addAll(individualWeights);
 
@@ -274,99 +262,15 @@ public class ProductionRateController {
         return records;
     }
 
-    /*
-     * CONSULTA MYSQL
-     */
 
-    private List<Map<String, Object>> loadRateSettings()
-        throws Exception {
-
-        String sql = """
-            SELECT
-                id,
-                __numero,
-                __min,
-                __max,
-                __sala,
-                __checked__frito
-            FROM ritmoproducciones
-            ORDER BY id ASC
-            """;
-
-        List<Map<String, Object>> settings =
-            new ArrayList<>();
-
-        Connection connection =
-            mySqlDatabase.getConnection();
-
-        try (
-            PreparedStatement statement =
-                connection.prepareStatement(sql);
-
-            ResultSet resultSet =
-                statement.executeQuery()
-        ) {
-            while (resultSet.next()) {
-
-                Map<String, Object> setting =
-                    new LinkedHashMap<>();
-
-                setting.put(
-                    "id",
-                    resultSet.getLong("id")
-                );
-
-                setting.put(
-                    "__numero",
-                    resultSet.getObject("__numero")
-                );
-
-                setting.put(
-                    "__min",
-                    resultSet.getObject("__min")
-                );
-
-                setting.put(
-                    "__max",
-                    resultSet.getObject("__max")
-                );
-
-                setting.put(
-                    "__sala",
-                    resultSet.getObject("__sala")
-                );
-
-                setting.put(
-                    "__checked__frito",
-                    resultSet.getObject(
-                        "__checked__frito"
-                    )
-                );
-
-                settings.add(setting);
-            }
-        }
-
-        return settings;
-    }
 
     /*
      * API DE PESADAS INDIVIDUALES
      */
 
-    private List<Map<String, Object>> loadIndividualWeights(
-        LocalDateTime dateFrom
-    ) throws IOException, InterruptedException {
-
-        YearMonth currentMonth =
-            YearMonth.now();
-
-        List<Map<String, Object>> weights =
-            new ArrayList<>(
-                requestIndividualWeights(
-                    currentMonth
-                )
-            );
+    private List<Map<String, Object>> loadIndividualWeights(LocalDateTime dateFrom) throws IOException, InterruptedException {
+        YearMonth currentMonth = YearMonth.now();
+        List<Map<String, Object>> weights = new ArrayList<>(requestIndividualWeights(currentMonth));
 
         /*
          * Durante los primeros siete días del mes también
@@ -375,9 +279,7 @@ public class ProductionRateController {
 
         if (LocalDate.now().getDayOfMonth() <= 7) {
             weights.addAll(
-                requestIndividualWeights(
-                    currentMonth.minusMonths(1)
-                )
+                requestIndividualWeights(currentMonth.minusMonths(1))
             );
         }
 
@@ -388,16 +290,14 @@ public class ProductionRateController {
 
         weights.removeIf(weight -> {
 
-            Object creationDate =
-                weight.get("CreationDate");
+            Object creationDate = weight.get("CreationDate");
 
             if (creationDate == null) {
                 return true;
             }
 
             try {
-                return parseDateTime(creationDate)
-                    .isBefore(dateFrom);
+                return parseDateTime(creationDate).isBefore(dateFrom);
 
             } catch (Exception exception) {
                 return true;
@@ -407,43 +307,20 @@ public class ProductionRateController {
         return weights;
     }
 
-    private List<Map<String, Object>> requestIndividualWeights(
-        YearMonth month
-    ) throws IOException, InterruptedException {
+    private List<Map<String, Object>> requestIndividualWeights(YearMonth month) throws IOException, InterruptedException {
 
-        String url =
-            INDIVIDUAL_WEIGHTS_URL
-                + "?year=" + month.getYear()
-                + "&month=" + month.getMonthValue();
+        String url          = INDIVIDUAL_WEIGHTS_URL + "?year=" + month.getYear() + "&month=" + month.getMonthValue();
+        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).timeout(Duration.ofSeconds(60)).GET().build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        HttpRequest request =
-            HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .timeout(Duration.ofSeconds(60))
-                .GET()
-                .build();
-
-        HttpResponse<String> response =
-            httpClient.send(
-                request,
-                HttpResponse.BodyHandlers.ofString()
-            );
-
-        if (
-            response.statusCode() < 200 ||
-            response.statusCode() >= 300
-        ) {
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
             throw new IOException(
                 "La API de pesadas individuales respondió HTTP "
                     + response.statusCode()
             );
         }
 
-        Object json =
-            jsonMapper.readValue(
-                response.body(),
-                Object.class
-            );
+        Object json = jsonMapper.readValue(response.body(), Object.class);
 
         if (!(json instanceof List<?> jsonList)) {
             throw new IOException(
@@ -451,22 +328,16 @@ public class ProductionRateController {
             );
         }
 
-        List<Map<String, Object>> weights =
-            new ArrayList<>();
+        List<Map<String, Object>> weights = new ArrayList<>();
 
         for (Object item : jsonList) {
-
             if (!(item instanceof Map<?, ?> sourceMap)) {
                 continue;
             }
 
-            Map<String, Object> weight =
-                new LinkedHashMap<>();
+            Map<String, Object> weight = new LinkedHashMap<>();
 
-            for (
-                Map.Entry<?, ?> entry :
-                sourceMap.entrySet()
-            ) {
+            for (Map.Entry<?, ?> entry : sourceMap.entrySet()) {
                 weight.put(
                     String.valueOf(entry.getKey()),
                     entry.getValue()
