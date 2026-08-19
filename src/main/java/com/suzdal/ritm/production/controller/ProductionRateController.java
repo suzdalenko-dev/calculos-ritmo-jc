@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.suzdal.ritm.production.database.MySqlDatabase;
 import com.suzdal.ritm.production.database.SqlServerDatabase;
+import com.suzdal.ritm.production.utils.config.DebugResponses;
 import com.suzdal.ritm.production.utils.repository.RateSettingsRepository;
 
 import tools.jackson.databind.json.JsonMapper;
@@ -80,77 +81,53 @@ public class ProductionRateController {
 
             sortByCreationDate(line3Materials);
 
-            List<Map<String, Object>> line3Result =
-                calculateProductionReport(
-                    line3Materials,
-                    3,
-                    rateSettings
-                );
-
-            prefixProductNames(
-                line3Result,
-                "L3 "
-            );
+            List<Map<String, Object>> line3Result = calculateProductionReport(line3Materials,3, rateSettings);
+            prefixProductNames(line3Result,"L3 ");
 
             /*
              * LÍNEA 1
              */
 
-            List<Map<String, Object>> line1Materials =
-                loadPackageRecords(
-                    dateFrom,
-                    "CWE 01"
-                );
-
-            List<Map<String, Object>> line1Result =
-                calculateProductionReport(
-                    line1Materials,
-                    1,
-                    rateSettings
-                );
-
-            prefixProductNames(
-                line1Result,
-                "L1 "
-            );
+            List<Map<String, Object>> line1Materials = loadPackageRecords(dateFrom, "CWE 01");
+            List<Map<String, Object>> line1Result    = calculateProductionReport(line1Materials, 1, rateSettings);
+            prefixProductNames(line1Result, "L1 ");
 
             /*
              * UNIR LAS DOS LÍNEAS
              */
 
-            List<Map<String, Object>> mergedResult =
-                new ArrayList<>();
+            List<Map<String, Object>> mergedResult = new ArrayList<>();
 
             mergedResult.addAll(line3Result);
             mergedResult.addAll(line1Result);
 
             mergedResult.sort(
                 Comparator.comparing(
-                    row -> parseDateTime(
-                        row.get("fechaIni")
-                    )
+                    row -> parseDateTime(row.get("fechaIni"))
                 )
             );
 
-            Map<String, Object> response =
-                new LinkedHashMap<>();
-
-            response.put(
-                "res",
-                mergedResult
-            );
-
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("res", mergedResult);
             return ResponseEntity.ok(response);
+
+            /*
+                if (true) {
+                    return DebugResponses.json(individualWeights);
+                }
+            */
+
 
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
-
             return errorResponse(exception);
 
         } catch (Exception exception) {
             return errorResponse(exception);
         }
     }
+
+
 
     /*
      * CONSULTA SQL SERVER
