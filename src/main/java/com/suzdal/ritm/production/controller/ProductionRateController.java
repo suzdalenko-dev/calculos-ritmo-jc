@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.suzdal.ritm.production.database.MySqlDatabase;
 import com.suzdal.ritm.production.database.SqlServerDatabase;
-import com.suzdal.ritm.production.utils.config.DebugResponses;
 import com.suzdal.ritm.production.utils.repository.RateSettingsRepository;
 
 import tools.jackson.databind.json.JsonMapper;
